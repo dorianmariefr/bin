@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+
+if ARGV.size < 3
+  puts "USAGE: ruby-replace FROM TO FILES..."
+  exit
+end
+
+from = ARGV[0]
+to = ARGV[1]
+files = ARGV[2..-1]
+
+files.each do |file|
+  File.write(file, File.read(file).gsub(from, to))
+end
