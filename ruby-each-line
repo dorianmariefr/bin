@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+
+if ARGV.size != 1
+  puts "USAGE: ruby-each-line CODE"
+  exit
+end
+
+STDIN.lines.each do |line|
+  l = line
+  eval(ARGV.first)
+end

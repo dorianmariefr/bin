@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+if ARGV.size != 1
+  puts "USAGE: ruby-all-lines CODE"
+  exit
+end
+
+lines = STDIN.each_line.to_a
+eval(ARGV.first)
