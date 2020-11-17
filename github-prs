@@ -2,17 +2,35 @@
 
 require 'octokit'
 require 'home-dotenv'
-require 'byebug'
+require 'colorize'
 HOME_ENV = HomeDotenv.parse
 
 client = Octokit::Client.new(access_token: HOME_ENV[:GITHUB_TOKEN])
 
-["doctolib/doctolib", "doctolib/kube"].each do |repo|
-  client.list_issues(repo, creator: client.user.login).each do |issue|
-    byebug
-    puts issue.title
-    puts
-    puts "  #{issue.html_url}"
-    pp issue
+def colorize_state(state)
+  if state == "failure"
+    state.red
+  elsif state == "success"
+    state.green
+  else
+    state.blue
   end
+end
+
+client.search_issues("is:open is:pr author:#{client.user.login}").items.each do |issue|
+  repo = issue.url.split("/")[4..5].join("/")
+  issue_id = issue.url.split("/").last.to_i
+
+  pull_request = client.pull_request(repo, issue_id)
+
+  sha = pull_request._links.statuses.href.split("/").last
+
+  statuses = client.statuses(repo, sha)
+
+  statuses.each do |status|
+    pp status
+    puts "  #{colorize_state(status.state)}: #{status.description}"
+  end
+
+  puts
 end
