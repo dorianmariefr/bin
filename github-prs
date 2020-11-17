@@ -1,0 +1,18 @@
+#!/usr/bin/env ruby
+
+require 'octokit'
+require 'home-dotenv'
+require 'byebug'
+HOME_ENV = HomeDotenv.parse
+
+client = Octokit::Client.new(access_token: HOME_ENV[:GITHUB_TOKEN])
+
+["doctolib/doctolib", "doctolib/kube"].each do |repo|
+  client.list_issues(repo, creator: client.user.login).each do |issue|
+    byebug
+    puts issue.title
+    puts
+    puts "  #{issue.html_url}"
+    pp issue
+  end
+end
