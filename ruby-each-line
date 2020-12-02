@@ -5,7 +5,8 @@ if ARGV.size != 1
   exit
 end
 
-STDIN.lines.each do |line|
+STDIN.each_line do |line|
+  line = line.strip
   l = line
   eval(ARGV.first)
 end

@@ -1,0 +1,81 @@
+#!/usr/bin/env ruby
+
+require "easy_translate"
+require "home-dotenv"
+require "yaml"
+
+HOME_ENV = HomeDotenv.parse
+
+EasyTranslate.api_key = HOME_ENV[:GOOGLE_TRANSLATE_API_KEY]
+
+if ARGV.size != 4
+  puts "USAGE: yaml-translate SOURCE_FILE SOURCE_LOCALE DESTINATION_FILE DESTINATION_LOCALE"
+  exit
+end
+
+def translate(strings, from:, to:)
+  EasyTranslate.translate(strings, from: from, to: to)
+end
+
+def all_strings_from(source)
+  if source.kind_of?(Array)
+    source.map.with_index do |_, i|
+      all_strings_from(source[i])
+    end
+  elsif source.kind_of?(Hash)
+    source.map do |_, value|
+      all_strings_from(value)
+    end
+  elsif source.kind_of?(String)
+    source
+  else
+    raise "not implemented"
+  end
+end
+
+def source_to_destination(source, destination, strings:)
+  if source.kind_of?(Array)
+    source.map.with_index do |_, i|
+      source_to_destination(source[i], destination&.[](i), strings: strings)
+    end
+  elsif source.kind_of?(Hash)
+    source.map do |key, _|
+      [key, source_to_destination(source[key], destination&.[](key), strings: strings)]
+    end.to_h
+  elsif source.kind_of?(String)
+    destination || strings[source]
+  else
+    raise "not implemented"
+  end
+end
+
+SOURCE_FILE = ARGV[0]
+SOURCE_LOCALE = ARGV[1]
+DESTINATION_FILE = ARGV[2]
+DESTINATION_LOCALE = ARGV[3]
+
+if !File.exists?(SOURCE_FILE)
+  puts "SOURCE_FILE doesn't exist"
+  exit
+end
+
+if !File.exists?(DESTINATION_FILE)
+  File.write(DESTINATION_FILE, "#{DESTINATION_LOCALE}:")
+end
+
+SOURCE = YAML.safe_load(File.read(SOURCE_FILE))
+DESTINATION = YAML.safe_load(File.read(DESTINATION_FILE))
+
+source_strings = all_strings_from(SOURCE).flatten
+
+destination_strings = translate(source_strings, from: SOURCE_LOCALE, to: DESTINATION_LOCALE)
+
+source_to_destination_strings = source_strings.zip(destination_strings).to_h
+
+destination = source_to_destination(
+  SOURCE[SOURCE_LOCALE],
+  DESTINATION[DESTINATION_LOCALE],
+  strings: source_to_destination_strings,
+)
+
+File.write(DESTINATION_FILE, { DESTINATION_LOCALE => destination }.to_yaml)
