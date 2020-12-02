@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+require "active_support/all"
+
 if ARGV.size != 1
   puts "USAGE: ruby-all-lines CODE"
   exit
