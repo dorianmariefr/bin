@@ -1,0 +1,24 @@
+#!/usr/bin/env ruby
+
+require 'yaml'
+
+if ARGV.size != 1
+  puts "USAGE: yaml-paths FILE"
+  exit
+end
+
+FILE = ARGV[0]
+
+def print_paths(value, path: "")
+  if value.is_a?(Hash)
+    value.each do |key, value|
+      print_paths(value, path: "#{path}.#{key}")
+    end
+  else
+    puts "#{path}: #{value}"
+  end
+end
+
+yaml = YAML.safe_load(File.read(FILE))
+
+print_paths(yaml)

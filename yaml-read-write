@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+require "yaml"
+
+File.write(ARGV.first, YAML.safe_load(File.read(ARGV.first)).to_yaml)

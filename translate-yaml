@@ -14,36 +14,22 @@ if ARGV.size != 4
 end
 
 def translate(strings, from:, to:)
+  puts "translate #{strings} from #{from} to #{to}"
   EasyTranslate.translate(strings, from: from, to: to)
 end
 
-def all_strings_from(source)
+def source_to_destination(source, destination)
   if source.kind_of?(Array)
     source.map.with_index do |_, i|
-      all_strings_from(source[i])
-    end
-  elsif source.kind_of?(Hash)
-    source.map do |_, value|
-      all_strings_from(value)
-    end
-  elsif source.kind_of?(String)
-    source
-  else
-    raise "not implemented"
-  end
-end
-
-def source_to_destination(source, destination, strings:)
-  if source.kind_of?(Array)
-    source.map.with_index do |_, i|
-      source_to_destination(source[i], destination&.[](i), strings: strings)
+      source_to_destination(source[i], destination&.[](i))
     end
   elsif source.kind_of?(Hash)
     source.map do |key, _|
-      [key, source_to_destination(source[key], destination&.[](key), strings: strings)]
+      [key, source_to_destination(source[key], destination&.[](key))]
     end.to_h
   elsif source.kind_of?(String)
-    destination || strings[source]
+    destination ||
+      translate(source, from: SOURCE_LOCALE, to: DESTINATION_LOCALE)
   else
     raise "not implemented"
   end
@@ -66,16 +52,9 @@ end
 SOURCE = YAML.safe_load(File.read(SOURCE_FILE))
 DESTINATION = YAML.safe_load(File.read(DESTINATION_FILE))
 
-source_strings = all_strings_from(SOURCE).flatten
-
-destination_strings = translate(source_strings, from: SOURCE_LOCALE, to: DESTINATION_LOCALE)
-
-source_to_destination_strings = source_strings.zip(destination_strings).to_h
-
 destination = source_to_destination(
   SOURCE[SOURCE_LOCALE],
   DESTINATION[DESTINATION_LOCALE],
-  strings: source_to_destination_strings,
 )
 
 File.write(DESTINATION_FILE, { DESTINATION_LOCALE => destination }.to_yaml)

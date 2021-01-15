@@ -1,13 +1,16 @@
 #!/usr/bin/env ruby
 
-if ARGV.size < 3
+if ARGV.size < 2
   puts "USAGE: ruby-replace FROM TO FILES..."
+  puts
+  puts "ALTERNATIVE:"
+  puts "ls | ruby-replace FROM TO"
   exit
 end
 
 from = ARGV[0]
 to = ARGV[1]
-files = ARGV[2..-1]
+files = ARGV[2..-1].any? ? ARGV[2..-1] : STDIN.each_line.to_a.map(&:strip)
 
 files.each do |file|
   next if File.directory?(file)

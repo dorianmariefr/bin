@@ -1,0 +1,19 @@
+#!/usr/bin/env ruby
+
+require 'yaml'
+
+if ARGV.size != 2
+  puts "USAGE: yaml-delete-key FILE PATH_TO_KEY"
+  exit
+end
+
+FILE = ARGV[0]
+PATH = ARGV[1].split(".")
+
+yaml = YAML.safe_load(File.read(FILE))
+
+parent = yaml.dig(*PATH[0..-2])
+
+parent.delete(PATH.last)
+
+File.write(FILE, yaml.to_yaml)
